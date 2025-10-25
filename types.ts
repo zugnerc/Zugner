@@ -20,6 +20,7 @@ export interface Governor extends BaseCandidate {
 
 export interface Mayor extends BaseCandidate {
     role: 'Alcalde Provincial' | 'Alcalde Distrital';
+    rank: number;
 }
 
 export type Candidate = Governor | Mayor;

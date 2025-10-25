@@ -10,10 +10,19 @@ interface CandidateCardProps {
     className?: string;
 }
 
-const roleColors = {
-    'Gobernador': 'ring-secondary',
-    'Alcalde Provincial': 'ring-indigo-400',
-    'Alcalde Distrital': 'ring-blue-400',
+const roleStyling = {
+    'Gobernador': {
+        ring: 'ring-secondary',
+        rankBg: 'bg-secondary'
+    },
+    'Alcalde Provincial': {
+        ring: 'ring-indigo-400',
+        rankBg: 'bg-indigo-500'
+    },
+    'Alcalde Distrital': {
+        ring: 'ring-blue-400',
+        rankBg: 'bg-blue-500'
+    },
 };
 
 const CandidateCard: React.FC<CandidateCardProps> = ({ candidate, party, onEdit, onDelete, className }) => {
@@ -25,6 +34,8 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate, party, onEdit,
         setTimeout(() => setDniCopied(false), 2000);
     };
 
+    const styles = roleStyling[candidate.role];
+
     return (
         <div className={`bg-subtle p-3 rounded-lg relative ${className}`}>
             <div className="absolute top-2 right-2 flex items-center space-x-1">
@@ -34,9 +45,9 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate, party, onEdit,
             
             <div className="flex items-start gap-3">
                 <div className="relative flex-shrink-0">
-                     <img src={candidate.photoUrl} alt={candidate.name} className={`w-16 h-16 rounded-full object-cover ring-2 ${roleColors[candidate.role]}`} />
+                     <img src={candidate.photoUrl} alt={candidate.name} className={`w-16 h-16 rounded-full object-cover ring-2 ${styles.ring}`} />
                      {'rank' in candidate && (
-                        <div className="absolute -top-1 -right-1 bg-secondary text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                        <div className={`absolute -top-1 -right-1 ${styles.rankBg} text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center`}>
                             #{candidate.rank}
                         </div>
                      )}

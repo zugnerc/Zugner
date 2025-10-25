@@ -39,7 +39,8 @@ export const initialParties: Party[] = [
                 nickname: 'La Dama de Hierro',
                 isAffiliated: false,
                 facebookUrl: '#',
-                tiktokUrl: '#'
+                tiktokUrl: '#',
+                rank: 3,
             }
         ],
         districts: [
@@ -58,7 +59,8 @@ export const initialParties: Party[] = [
                         nickname: 'El Joven Líder',
                         isAffiliated: true,
                         facebookUrl: '#',
-                        tiktokUrl: '#'
+                        tiktokUrl: '#',
+                        rank: 2,
                     }
                 ]
             }

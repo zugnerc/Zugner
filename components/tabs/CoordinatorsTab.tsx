@@ -33,18 +33,16 @@ const CoordinatorsTab: React.FC = () => {
         setCoordinators(coordinators.filter(c => c.id !== id));
     };
 
+    // FIX: Correctly type the initial value for the reduce method. This ensures that TypeScript can infer the correct type for `groupedCoordinators`, resolving the error on `coords.map` where `coords` was previously `unknown`.
     const groupedCoordinators = useMemo(() => {
-        // Fix: To solve the error `Property 'map' does not exist on type 'unknown'`, we explicitly type the accumulator of the reduce function.
-        // This ensures that `groupedCoordinators` is correctly typed as `Record<string, Coordinator[]>`,
-        // which in turn allows TypeScript to correctly infer the type of `coords` as `Coordinator[]` inside the map function.
-        return coordinators.reduce((acc: Record<string, Coordinator[]>, coord) => {
+        return coordinators.reduce((acc, coord) => {
             const key = `${coord.province} > ${coord.district}`;
             if (!acc[key]) {
                 acc[key] = [];
             }
             acc[key].push(coord);
             return acc;
-        }, {});
+        }, {} as Record<string, Coordinator[]>);
     }, [coordinators]);
 
     return (

@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import type { Candidate, Governor } from '../../types';
+import type { Candidate, Governor, Mayor } from '../../types';
 
 interface CandidateFormProps {
     candidate?: Candidate;
     partyId?: string;
     role?: Candidate['role'];
-    onSave: (candidate: Candidate) => void;
+    locationId?: string;
+    onSave: (candidate: Candidate, locationId?: string) => void;
     onClose: () => void;
 }
 
-const CandidateForm: React.FC<CandidateFormProps> = ({ candidate, partyId, role, onSave, onClose }) => {
+const CandidateForm: React.FC<CandidateFormProps> = ({ candidate, partyId, role, locationId, onSave, onClose }) => {
     const [formData, setFormData] = useState({
         name: '',
         photoUrl: '',
@@ -33,6 +34,18 @@ const CandidateForm: React.FC<CandidateFormProps> = ({ candidate, partyId, role,
                 tiktokUrl: candidate.tiktokUrl,
                 rank: 'rank' in candidate ? candidate.rank : 100,
             });
+        } else {
+            // FIX: Reset form state when adding a new candidate
+            setFormData({
+                name: '',
+                photoUrl: '',
+                dni: '',
+                nickname: '',
+                isAffiliated: false,
+                facebookUrl: '',
+                tiktokUrl: '',
+                rank: 100
+            });
         }
     }, [candidate]);
 
@@ -46,20 +59,23 @@ const CandidateForm: React.FC<CandidateFormProps> = ({ candidate, partyId, role,
         const finalRole = candidate?.role || role;
         if (!finalRole) return;
         
-        let candidateData: Partial<Candidate> = {
+        const isNew = !candidate;
+
+        const candidateData: Candidate = {
             id: candidate?.id || crypto.randomUUID(),
             partyId: candidate?.partyId || partyId!,
             role: finalRole,
-            ...formData,
+            name: formData.name,
+            photoUrl: formData.photoUrl,
+            dni: formData.dni,
+            nickname: formData.nickname,
+            isAffiliated: formData.isAffiliated,
+            facebookUrl: formData.facebookUrl,
+            tiktokUrl: formData.tiktokUrl,
+            rank: Number(formData.rank)
         };
 
-        if (finalRole === 'Gobernador') {
-            (candidateData as Governor).rank = Number(formData.rank);
-        } else {
-             delete (candidateData as any).rank;
-        }
-
-        onSave(candidateData as Candidate);
+        onSave(candidateData, isNew ? locationId : undefined);
     };
     
     const finalRole = candidate?.role || role;
@@ -83,7 +99,7 @@ const CandidateForm: React.FC<CandidateFormProps> = ({ candidate, partyId, role,
                     <label className="block text-sm font-medium text-gray-700">Apelativo</label>
                     <input type="text" name="nickname" value={formData.nickname} onChange={handleChange} className="mt-1 block w-full bg-subtle border-gray-300 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-primary" />
                 </div>
-                {finalRole === 'Gobernador' && (
+                {finalRole && (
                      <div>
                         <label className="block text-sm font-medium text-gray-700">Ranking</label>
                         <input type="number" name="rank" value={formData.rank} onChange={handleChange} className="mt-1 block w-full bg-subtle border-gray-300 rounded-md py-2 px-3 text-gray-900 focus:outline-none focus:ring-primary" />

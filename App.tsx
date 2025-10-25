@@ -3,7 +3,7 @@ import SituationalStatusTab from './components/tabs/SituationalStatusTab';
 import RegionalBodyTab from './components/tabs/RegionalBodyTab';
 import ActivityPlannerTab from './components/tabs/ActivityPlannerTab';
 import CoordinatorsTab from './components/tabs/CoordinatorsTab';
-import type { Party, Candidate, MyActivity, CompetitorActivity } from './types';
+import type { Party, Candidate, MyActivity, CompetitorActivity, Province, District } from './types';
 import { initialParties, initialMyActivities, initialCompetitorActivities } from './constants';
 
 
@@ -26,7 +26,7 @@ const App: React.FC = () => {
                 description: partyData.description,
                 logoUrl: partyData.logoUrl,
                 governor: null,
-                provinces: initialParties[0].provinces.map(p => ({...p, mayors: [], districts: p.districts.map(d => ({...d, mayors: []}))})),
+                provinces: [],
             };
             setParties([...parties, newParty]);
         } else {
@@ -41,41 +41,46 @@ const App: React.FC = () => {
     };
     
     // Candidate Handlers
-    const handleSaveCandidate = (candidate: Candidate, isNew: boolean) => {
+    const handleSaveCandidate = (candidate: Candidate, isNew: boolean, locationId?: string) => {
         setParties(currentParties => {
             const newParties = JSON.parse(JSON.stringify(currentParties));
             const party = newParties.find((p: Party) => p.id === candidate.partyId);
             if (!party) return currentParties;
 
-            const handleUpdate = (items: (Candidate | { mayors: Candidate[] })[]) => {
-                const index = items.findIndex((item: any) => item.id === candidate.id);
-                if (index > -1) {
-                    items[index] = candidate;
-                } else if(isNew) {
-                    // This is a simplified add logic, a real app would need locationId to place it correctly
-                    if('mayors' in items[0] && Array.isArray((items[0] as any).mayors)) {
-                        (items[0] as any).mayors.push(candidate);
+            if (isNew) {
+                if (candidate.role === 'Gobernador') {
+                    party.governor = candidate;
+                } else if (candidate.role === 'Alcalde Provincial' && locationId) {
+                    const province = party.provinces.find((p: Province) => p.id === locationId);
+                    if (province) {
+                        province.mayors.push(candidate);
+                    }
+                } else if (candidate.role === 'Alcalde Distrital' && locationId) {
+                    for (const province of party.provinces) {
+                        const district = province.districts.find((d: District) => d.id === locationId);
+                        if (district) {
+                            district.mayors.push(candidate);
+                            break; // Found and added, exit loop
+                        }
                     }
                 }
-            };
-    
-            if (candidate.role === 'Gobernador') {
-                party.governor = candidate;
-            } else if (candidate.role === 'Alcalde Provincial') {
-                 // Simplified: finds first province and updates/adds there.
-                 const prov = party.provinces[0];
-                 if(prov) {
-                    const index = prov.mayors.findIndex(m => m.id === candidate.id);
-                    if (index > -1) prov.mayors[index] = candidate;
-                    else if (isNew) prov.mayors.push(candidate);
-                 }
-            } else if (candidate.role === 'Alcalde Distrital') {
-                // Simplified: finds first district in first province and updates/adds there.
-                const dist = party.provinces[0]?.districts[0];
-                if(dist) {
-                    const index = dist.mayors.findIndex(m => m.id === candidate.id);
-                    if (index > -1) dist.mayors[index] = candidate;
-                    else if (isNew) dist.mayors.push(candidate);
+            } else { // It's an update
+                if (candidate.role === 'Gobernador') {
+                    party.governor = candidate;
+                } else {
+                    party.provinces.forEach((prov: Province) => {
+                        let mayorIndex = prov.mayors.findIndex(m => m.id === candidate.id);
+                        if (mayorIndex > -1) {
+                            prov.mayors[mayorIndex] = candidate;
+                            return;
+                        }
+                        prov.districts.forEach((dist: District) => {
+                            let mayorIndex = dist.mayors.findIndex(m => m.id === candidate.id);
+                            if (mayorIndex > -1) {
+                                dist.mayors[mayorIndex] = candidate;
+                            }
+                        });
+                    });
                 }
             }
     
@@ -100,6 +105,43 @@ const App: React.FC = () => {
              }));
          }
     };
+
+    // Location Handlers
+    const handleSaveDistrict = (partyId: string, provinceId: string, district: District) => {
+        setParties(currentParties => {
+            const newParties = JSON.parse(JSON.stringify(currentParties));
+            const party = newParties.find((p: Party) => p.id === partyId);
+            if (!party) return currentParties;
+
+            const province = party.provinces.find((p: Province) => p.id === provinceId);
+            if (province) {
+                const districtIndex = province.districts.findIndex((d: District) => d.id === district.id);
+                if (districtIndex > -1) {
+                    province.districts[districtIndex] = district; // Update
+                } else {
+                    province.districts.push(district); // Add
+                }
+            }
+            return newParties;
+        });
+    };
+
+    const handleSaveProvince = (partyId: string, province: Province) => {
+        setParties(currentParties => {
+            const newParties = JSON.parse(JSON.stringify(currentParties));
+            const party = newParties.find((p: Party) => p.id === partyId);
+            if (!party) return currentParties;
+
+            const provinceIndex = party.provinces.findIndex((p: Province) => p.id === province.id);
+            if (provinceIndex > -1) {
+                party.provinces[provinceIndex] = province; // Update
+            } else {
+                party.provinces.push(province); // Add
+            }
+            return newParties;
+        });
+    };
+
 
     // Activity Handlers
     const handleSaveMyActivity = (activity: MyActivity) => {
@@ -136,6 +178,8 @@ const App: React.FC = () => {
                             onDeleteParty={handleDeleteParty}
                             onSaveCandidate={handleSaveCandidate}
                             onDeleteCandidate={handleDeleteCandidate}
+                            onSaveDistrict={handleSaveDistrict}
+                            onSaveProvince={handleSaveProvince}
                             onSaveMyActivity={handleSaveMyActivity}
                             onDeleteMyActivity={handleDeleteMyActivity}
                             onSaveCompetitorActivity={handleSaveCompetitorActivity}
@@ -170,7 +214,7 @@ const App: React.FC = () => {
             <header className="bg-surface shadow-sm sticky top-0 z-10">
                 <div className="container mx-auto px-4">
                     <div className="flex items-center justify-between py-4">
-                        <h1 className="text-2xl font-bold text-primary">Campaña Dashboard</h1>
+                        <h1 className="text-2xl font-bold text-primary">BRAVO22</h1>
                     </div>
                     <nav className="flex -mb-px">
                         <TabButton tab="situational" label="Estado Situacional" />
