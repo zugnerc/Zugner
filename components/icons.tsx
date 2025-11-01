@@ -66,3 +66,13 @@ export const XCircleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
         <path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
     </svg>
 );
+
+export const CakeIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" {...props}>
+    <path d="M12 6.25a.75.75 0 100-1.5.75.75 0 000 1.5z" />
+    <path fillRule="evenodd" d="M12 3a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0112 3zM8.25 9.75a3.75 3.75 0 117.5 0 3.75 3.75 0 01-7.5 0zM12 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" clipRule="evenodd" />
+    <path d="M13.21 14.03a.75.75 0 01.87-.223 6 6 0 014.223 4.223.75.75 0 01-1.314.628 4.5 4.5 0 00-3.16-3.16.75.75 0 01-.62-1.314zM5.7 13.807a.75.75 0 01.224.87 4.5 4.5 0 003.16 3.16.75.75 0 11-.628 1.314 6 6 0 01-4.223-4.223.75.75 0 011.314-.628.75.75 0 01.153-.053z" />
+    <path d="M17.25 10.5a.75.75 0 100-1.5.75.75 0 000 1.5zM6.75 9a.75.75 0 10-1.5 0 .75.75 0 001.5 0z" />
+    <path fillRule="evenodd" d="M12 21a9 9 0 100-18 9 9 0 000 18zm0-1.5a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" clipRule="evenodd" />
+  </svg>
+);

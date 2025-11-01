@@ -1,8 +1,9 @@
 export type Role = 'Gobernador' | 'Alcalde Provincial' | 'Alcalde Distrital';
-export type Gender = 'masculino' | 'femenino' | 'no especificado';
 
-export interface BaseCandidate {
+export interface Candidate {
     id: string;
+    partyId: string;
+    role: Role;
     name: string;
     photoUrl: string;
     dni: string;
@@ -10,20 +11,12 @@ export interface BaseCandidate {
     isAffiliated: boolean;
     facebookUrl: string;
     tiktokUrl: string;
-    partyId: string;
-}
-
-export interface Governor extends BaseCandidate {
-    role: 'Gobernador';
     rank: number;
 }
 
-export interface Mayor extends BaseCandidate {
-    role: 'Alcalde Provincial' | 'Alcalde Distrital';
-    rank: number;
-}
+export type Governor = Candidate & { role: 'Gobernador' };
+export type Mayor = Candidate & { role: 'Alcalde Provincial' | 'Alcalde Distrital' };
 
-export type Candidate = Governor | Mayor;
 
 export interface District {
     id: string;
@@ -49,28 +42,29 @@ export interface Party {
     provinces: Province[];
 }
 
-// Activity Feed Types
-export interface Activity {
+// Other types
+export interface MyActivity {
     id: string;
+    description: string;
+    date: string;
+    link: string;
+}
+
+export interface CompetitorActivity {
+    id: string;
+    partyId: string;
     description: string;
     link: string;
 }
 
-export interface MyActivity extends Activity {
-    date: string;
-}
+// RegionalBody types
+export type Gender = 'masculino' | 'femenino';
 
-export interface CompetitorActivity extends Activity {
-    partyId: string;
-}
-
-
-// Regional Body Types
 export interface RegionalOfficial {
     id: string;
     name: string;
     dni: string;
-    role: string;
+    role: 'Gobernador' | 'Vicegobernadora';
 }
 
 export interface Councilor {
@@ -82,8 +76,11 @@ export interface Councilor {
     gender: Gender;
     isCommunityQuota: boolean;
     isAffiliated: boolean;
-    isPrimary: boolean; // titular o accesitario
+    isPrimary: boolean;
     phone: string;
+    province: string;
+    profession: string;
+    number: number;
 }
 
 export interface ListMayor {
@@ -98,25 +95,31 @@ export interface ListMayor {
     phone: string;
 }
 
-export interface ProvincialList {
-    id: string;
-    provinceName: string;
-    voters: number;
-    mayor: ListMayor;
-    councilors: Councilor[]; // regidores provinciales
-    districtLists: DistrictList[];
-}
-
 export interface DistrictList {
     id: string;
     districtName: string;
     voters: number;
-    mayor: ListMayor;
-    councilors: Councilor[]; // regidores distritales
+    mayor: ListMayor | null;
+    councilors: Councilor[];
 }
 
+export interface ProvincialList {
+    id: string;
+    provinceName: string;
+    voters: number;
+    mayor: ListMayor | null;
+    councilors: Councilor[];
+    districtLists: DistrictList[];
+}
 
-// Planner Types
+export interface RegionalBody {
+    governor: RegionalOfficial;
+    viceGovernor: RegionalOfficial;
+    regionalCouncilors: Councilor[];
+    provincialLists: ProvincialList[];
+}
+
+// ActivityPlannerTab types
 export interface PlannedEvent {
     id: string;
     title: string;
@@ -126,12 +129,78 @@ export interface PlannedEvent {
     link: string;
 }
 
-// Coordinator Types
+// CoordinatorsTab types
 export interface Coordinator {
     id: string;
     name: string;
-    nickname: string;
+    description: string;
     phone: string;
-    province: string;
-    district: string;
+}
+
+export interface CoordinatorDistrict {
+    id: string;
+    name: string;
+    coordinators: Coordinator[];
+}
+
+export interface CoordinatorProvince {
+    id: string;
+    name: string;
+    districts: CoordinatorDistrict[];
+}
+
+
+// BirthdaysTab types
+export interface Birthday {
+    id: string;
+    name: string;
+    nickname: string;
+    birthdate: string; // YYYY-MM-DD
+}
+
+// MediaTrackingTab types
+export type Sentiment = 'positive' | 'neutral' | 'negative';
+
+export interface MediaPost {
+    id: string;
+    title: string;
+    publicationDate: string; // YYYY-MM-DD
+    sentiment: Sentiment;
+    summary: string;
+    link: string;
+}
+
+// TrollsTab types
+export interface TrollAccount {
+    id: string;
+    name: string;
+    platform: 'facebook' | 'tiktok';
+    description: string;
+    link: string;
+}
+
+export interface TrollTarget {
+    id: string;
+    name: string;
+    trolls: TrollAccount[];
+}
+
+// Congresales2026 types
+export interface CongressionalMember {
+    id: string;
+    name: string;
+    photoUrl: string;
+    facebookUrl: string;
+    tiktokUrl: string;
+}
+
+export interface PresidentialCandidate {
+    id: string;
+    rank: number;
+    candidateName: string;
+    candidateDescription: string;
+    partyName: string;
+    partySymbolUrl: string;
+    senator: CongressionalMember | null;
+    deputies: CongressionalMember[];
 }

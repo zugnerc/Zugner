@@ -3,11 +3,16 @@ import SituationalStatusTab from './components/tabs/SituationalStatusTab';
 import RegionalBodyTab from './components/tabs/RegionalBodyTab';
 import ActivityPlannerTab from './components/tabs/ActivityPlannerTab';
 import CoordinatorsTab from './components/tabs/CoordinatorsTab';
-import type { Party, Candidate, MyActivity, CompetitorActivity, Province, District } from './types';
-import { initialParties, initialMyActivities, initialCompetitorActivities } from './constants';
+import BirthdaysTab from './components/tabs/BirthdaysTab';
+import MediaTrackingTab from './components/tabs/MediaTrackingTab';
+import TrollsTab from './components/tabs/TrollsTab';
+import Generales2026Tab from './components/tabs/Generales2026Tab';
+// FIX: Import Mayor type
+import type { Party, Candidate, MyActivity, CompetitorActivity, Province, District, Birthday, MediaPost, TrollTarget, TrollAccount, RegionalBody, Mayor, PresidentialCandidate, CongressionalMember, CoordinatorProvince, CoordinatorDistrict, Coordinator } from './types';
+import { initialParties, initialMyActivities, initialCompetitorActivities, initialBirthdays, initialMediaPosts, initialTrollTargets, initialRegionalBody, initialPresidentialCandidates, initialCoordinatorProvinces } from './constants';
 
 
-type Tab = 'situational' | 'regional' | 'planner' | 'coordinators';
+type Tab = 'situational' | 'regional' | 'planner' | 'coordinators' | 'birthdays' | 'media' | 'trolls' | 'generales';
 
 const App: React.FC = () => {
     const [activeTab, setActiveTab] = useState<Tab>('situational');
@@ -16,6 +21,13 @@ const App: React.FC = () => {
     const [parties, setParties] = useState<Party[]>(initialParties);
     const [myActivities, setMyActivities] = useState<MyActivity[]>(initialMyActivities);
     const [competitorActivities, setCompetitorActivities] = useState<CompetitorActivity[]>(initialCompetitorActivities);
+    const [birthdays, setBirthdays] = useState<Birthday[]>(initialBirthdays);
+    const [mediaPosts, setMediaPosts] = useState<MediaPost[]>(initialMediaPosts);
+    const [trollTargets, setTrollTargets] = useState<TrollTarget[]>(initialTrollTargets);
+    const [regionalBody, setRegionalBody] = useState<RegionalBody>(initialRegionalBody);
+    const [presidentialCandidates, setPresidentialCandidates] = useState<PresidentialCandidate[]>(initialPresidentialCandidates);
+    const [coordinatorProvinces, setCoordinatorProvinces] = useState<CoordinatorProvince[]>(initialCoordinatorProvinces);
+
 
     // Party Handlers
     const handleSaveParty = (partyData: Party | (Omit<Party, 'id' | 'governor' | 'provinces'> & { type: 'newParty' })) => {
@@ -53,13 +65,15 @@ const App: React.FC = () => {
                 } else if (candidate.role === 'Alcalde Provincial' && locationId) {
                     const province = party.provinces.find((p: Province) => p.id === locationId);
                     if (province) {
-                        province.mayors.push(candidate);
+                        // FIX: Cast candidate to Mayor to satisfy the type of province.mayors.
+                        province.mayors.push(candidate as Mayor);
                     }
                 } else if (candidate.role === 'Alcalde Distrital' && locationId) {
                     for (const province of party.provinces) {
                         const district = province.districts.find((d: District) => d.id === locationId);
                         if (district) {
-                            district.mayors.push(candidate);
+                            // FIX: Cast candidate to Mayor to satisfy the type of district.mayors.
+                            district.mayors.push(candidate as Mayor);
                             break; // Found and added, exit loop
                         }
                     }
@@ -71,13 +85,13 @@ const App: React.FC = () => {
                     party.provinces.forEach((prov: Province) => {
                         let mayorIndex = prov.mayors.findIndex(m => m.id === candidate.id);
                         if (mayorIndex > -1) {
-                            prov.mayors[mayorIndex] = candidate;
+                            prov.mayors[mayorIndex] = candidate as Mayor;
                             return;
                         }
                         prov.districts.forEach((dist: District) => {
                             let mayorIndex = dist.mayors.findIndex(m => m.id === candidate.id);
                             if (mayorIndex > -1) {
-                                dist.mayors[mayorIndex] = candidate;
+                                dist.mayors[mayorIndex] = candidate as Mayor;
                             }
                         });
                     });
@@ -167,6 +181,193 @@ const App: React.FC = () => {
         setCompetitorActivities(competitorActivities.filter(a => a.id !== id));
     };
 
+    // Birthday Handlers
+    const handleSaveBirthday = (birthday: Birthday) => {
+        const exists = birthdays.some(b => b.id === birthday.id);
+        if (exists) {
+            setBirthdays(birthdays.map(b => b.id === birthday.id ? birthday : b));
+        } else {
+            setBirthdays([...birthdays, birthday]);
+        }
+    };
+    const handleDeleteBirthday = (id: string) => {
+        if (window.confirm('¿Estás seguro de que quieres eliminar este cumpleaños?')) {
+            setBirthdays(birthdays.filter(b => b.id !== id));
+        }
+    };
+    
+    // Media Post Handlers
+    const handleSaveMediaPost = (post: MediaPost) => {
+        const exists = mediaPosts.some(p => p.id === post.id);
+        if (exists) {
+            setMediaPosts(mediaPosts.map(p => p.id === post.id ? post : p));
+        } else {
+            setMediaPosts([...mediaPosts, post]);
+        }
+    };
+    const handleDeleteMediaPost = (id: string) => {
+        if (window.confirm('¿Estás seguro de que quieres eliminar este registro?')) {
+            setMediaPosts(mediaPosts.filter(p => p.id !== id));
+        }
+    };
+    
+    // Troll Target Handlers
+    const handleSaveTrollTarget = (target: TrollTarget) => {
+        const exists = trollTargets.some(t => t.id === target.id);
+        if (exists) {
+            setTrollTargets(trollTargets.map(t => t.id === target.id ? target : t));
+        } else {
+            setTrollTargets([...trollTargets, target]);
+        }
+    };
+    const handleDeleteTrollTarget = (id: string) => {
+        if (window.confirm('¿Estás seguro de que quieres eliminar este objetivo y todas sus cuentas asociadas?')) {
+            setTrollTargets(trollTargets.filter(t => t.id !== id));
+        }
+    };
+    
+    // Troll Account Handlers
+    const handleSaveTroll = (targetId: string, troll: TrollAccount) => {
+        setTrollTargets(trollTargets.map(target => {
+            if (target.id !== targetId) return target;
+            const trollExists = target.trolls.some(t => t.id === troll.id);
+            if (trollExists) {
+                return { ...target, trolls: target.trolls.map(t => t.id === troll.id ? troll : t) };
+            } else {
+                return { ...target, trolls: [...target.trolls, troll] };
+            }
+        }));
+    };
+    const handleDeleteTroll = (targetId: string, trollId: string) => {
+        if (window.confirm('¿Estás seguro de que quieres eliminar esta cuenta troll?')) {
+            setTrollTargets(trollTargets.map(target => {
+                if (target.id !== targetId) return target;
+                return { ...target, trolls: target.trolls.filter(t => t.id !== trollId) };
+            }));
+        }
+    };
+
+    // Regional Body Handlers
+    const handleSaveRegionalBody = (newRegionalBody: RegionalBody) => {
+        setRegionalBody(newRegionalBody);
+    };
+
+    // Coordinator Handlers
+    const handleSaveCoordinatorProvince = (province: CoordinatorProvince) => {
+        setCoordinatorProvinces(prev => {
+            const exists = prev.some(p => p.id === province.id);
+            if (exists) {
+                return prev.map(p => p.id === province.id ? province : p);
+            }
+            return [...prev, province];
+        });
+    };
+    const handleDeleteCoordinatorProvince = (provinceId: string) => {
+        if (window.confirm('¿Estás seguro de que quieres eliminar esta provincia y todos sus coordinadores?')) {
+            setCoordinatorProvinces(prev => prev.filter(p => p.id !== provinceId));
+        }
+    };
+
+    const handleSaveCoordinatorDistrict = (provinceId: string, district: CoordinatorDistrict) => {
+        setCoordinatorProvinces(prev => prev.map(prov => {
+            if (prov.id !== provinceId) return prov;
+            const exists = prov.districts.some(d => d.id === district.id);
+            const newDistricts = exists
+                ? prov.districts.map(d => d.id === district.id ? district : d)
+                : [...prov.districts, district];
+            return { ...prov, districts: newDistricts };
+        }));
+    };
+    const handleDeleteCoordinatorDistrict = (provinceId: string, districtId: string) => {
+        if (window.confirm('¿Estás seguro de que quieres eliminar este distrito y todos sus coordinadores?')) {
+            setCoordinatorProvinces(prev => prev.map(prov => {
+                if (prov.id !== provinceId) return prov;
+                const newDistricts = prov.districts.filter(d => d.id !== districtId);
+                return { ...prov, districts: newDistricts };
+            }));
+        }
+    };
+    
+    const handleSaveCoordinator = (provinceId: string, districtId: string, coordinator: Coordinator) => {
+        setCoordinatorProvinces(prev => prev.map(prov => {
+            if (prov.id !== provinceId) return prov;
+            const newDistricts = prov.districts.map(dist => {
+                if (dist.id !== districtId) return dist;
+                const exists = dist.coordinators.some(c => c.id === coordinator.id);
+                const newCoordinators = exists
+                    ? dist.coordinators.map(c => c.id === coordinator.id ? coordinator : c)
+                    : [...dist.coordinators, coordinator];
+                return { ...dist, coordinators: newCoordinators };
+            });
+            return { ...prov, districts: newDistricts };
+        }));
+    };
+    const handleDeleteCoordinator = (provinceId: string, districtId: string, coordinatorId: string) => {
+        if (window.confirm('¿Estás seguro de que quieres eliminar este coordinador?')) {
+            setCoordinatorProvinces(prev => prev.map(prov => {
+                if (prov.id !== provinceId) return prov;
+                const newDistricts = prov.districts.map(dist => {
+                    if (dist.id !== districtId) return dist;
+                    const newCoordinators = dist.coordinators.filter(c => c.id !== coordinatorId);
+                    return { ...dist, coordinators: newCoordinators };
+                });
+                return { ...prov, districts: newDistricts };
+            }));
+        }
+    };
+
+    // Generales2026 Handlers
+    const handleSavePresidentialCandidate = (candidate: PresidentialCandidate) => {
+        const exists = presidentialCandidates.some(c => c.id === candidate.id);
+        if (exists) {
+            setPresidentialCandidates(presidentialCandidates.map(c => c.id === candidate.id ? candidate : c));
+        } else {
+            setPresidentialCandidates([...presidentialCandidates, candidate]);
+        }
+    };
+
+    const handleDeletePresidentialCandidate = (id: string) => {
+        if (window.confirm('¿Estás seguro de que quieres eliminar este candidato presidencial y su lista?')) {
+            setPresidentialCandidates(presidentialCandidates.filter(c => c.id !== id));
+        }
+    };
+
+    const handleSaveCongressionalMember = (presidentialCandidateId: string, member: CongressionalMember, type: 'senator' | 'deputy') => {
+        setPresidentialCandidates(prev => prev.map(p => {
+            if (p.id !== presidentialCandidateId) return p;
+
+            const newP = { ...p };
+            if (type === 'senator') {
+                newP.senator = member;
+            } else {
+                const deputyExists = newP.deputies.some(d => d.id === member.id);
+                if (deputyExists) {
+                    newP.deputies = newP.deputies.map(d => d.id === member.id ? member : d);
+                } else {
+                    newP.deputies = [...newP.deputies, member];
+                }
+            }
+            return newP;
+        }));
+    };
+    
+    const handleDeleteCongressionalMember = (presidentialCandidateId: string, memberId: string, type: 'senator' | 'deputy') => {
+        if (window.confirm('¿Estás seguro de que quieres eliminar a esta persona de la lista?')) {
+            setPresidentialCandidates(prev => prev.map(p => {
+                if (p.id !== presidentialCandidateId) return p;
+
+                const newP = { ...p };
+                if (type === 'senator') {
+                    newP.senator = null;
+                } else {
+                    newP.deputies = newP.deputies.filter(d => d.id !== memberId);
+                }
+                return newP;
+            }));
+        }
+    };
+
+
     const renderTabContent = () => {
         switch (activeTab) {
             case 'situational':
@@ -174,6 +375,7 @@ const App: React.FC = () => {
                             parties={parties}
                             myActivities={myActivities}
                             competitorActivities={competitorActivities}
+                            birthdays={birthdays}
                             onSaveParty={handleSaveParty}
                             onDeleteParty={handleDeleteParty}
                             onSaveCandidate={handleSaveCandidate}
@@ -186,11 +388,47 @@ const App: React.FC = () => {
                             onDeleteCompetitorActivity={handleDeleteCompetitorActivity}
                         />;
             case 'regional':
-                return <RegionalBodyTab />;
+                return <RegionalBodyTab regionalBody={regionalBody} onSave={handleSaveRegionalBody} />;
             case 'planner':
                 return <ActivityPlannerTab />;
             case 'coordinators':
-                return <CoordinatorsTab />;
+                return <CoordinatorsTab 
+                            provinces={coordinatorProvinces}
+                            onSaveProvince={handleSaveCoordinatorProvince}
+                            onDeleteProvince={handleDeleteCoordinatorProvince}
+                            onSaveDistrict={handleSaveCoordinatorDistrict}
+                            onDeleteDistrict={handleDeleteCoordinatorDistrict}
+                            onSaveCoordinator={handleSaveCoordinator}
+                            onDeleteCoordinator={handleDeleteCoordinator}
+                        />;
+            case 'birthdays':
+                return <BirthdaysTab 
+                            birthdays={birthdays}
+                            onSaveBirthday={handleSaveBirthday}
+                            onDeleteBirthday={handleDeleteBirthday}
+                        />;
+            case 'media':
+                return <MediaTrackingTab 
+                            mediaPosts={mediaPosts}
+                            onSaveMediaPost={handleSaveMediaPost}
+                            onDeleteMediaPost={handleDeleteMediaPost}
+                        />;
+            case 'trolls':
+                return <TrollsTab
+                            trollTargets={trollTargets}
+                            onSaveTarget={handleSaveTrollTarget}
+                            onDeleteTarget={handleDeleteTrollTarget}
+                            onSaveTroll={handleSaveTroll}
+                            onDeleteTroll={handleDeleteTroll}
+                        />;
+            case 'generales':
+                return <Generales2026Tab
+                            presidentialCandidates={presidentialCandidates}
+                            onSavePresidentialCandidate={handleSavePresidentialCandidate}
+                            onDeletePresidentialCandidate={handleDeletePresidentialCandidate}
+                            onSaveCongressionalMember={handleSaveCongressionalMember}
+                            onDeleteCongressionalMember={handleDeleteCongressionalMember}
+                        />;
             default:
                 return null;
         }
@@ -221,6 +459,10 @@ const App: React.FC = () => {
                         <TabButton tab="regional" label="Órgano Regional" />
                         <TabButton tab="planner" label="Planificador" />
                         <TabButton tab="coordinators" label="Coordinadores" />
+                        <TabButton tab="birthdays" label="Cumpleaños" />
+                        <TabButton tab="media" label="Media Seguimiento" />
+                        <TabButton tab="trolls" label="Cuentas Troll" />
+                        <TabButton tab="generales" label="Generales 2026" />
                     </nav>
                 </div>
             </header>

@@ -14,9 +14,10 @@ interface PartyColumnProps {
     onEditDistrict: (provinceId: string, district: District) => void;
     onAddDistrict: (provinceId: string) => void;
     onAddProvince: () => void;
+    onEditProvince: (province: Province) => void;
 }
 
-const PartyColumn: React.FC<PartyColumnProps> = ({ party, onEditParty, onDeleteParty, onEditCandidate, onDeleteCandidate, onAddCandidate, onEditDistrict, onAddDistrict, onAddProvince }) => {
+const PartyColumn: React.FC<PartyColumnProps> = ({ party, onEditParty, onDeleteParty, onEditCandidate, onDeleteCandidate, onAddCandidate, onEditDistrict, onAddDistrict, onAddProvince, onEditProvince }) => {
     
     const candidateCounts = useMemo(() => {
         let provincial = 0;
@@ -88,7 +89,12 @@ const PartyColumn: React.FC<PartyColumnProps> = ({ party, onEditParty, onDeleteP
                     {sortedProvinces.map(province => (
                          <CollapsibleSection 
                             key={province.id}
-                            header={<h4 className="text-md font-semibold text-indigo-600">Provincia: {province.name}</h4>}
+                            header={
+                                <div className="flex items-center gap-2">
+                                    <h4 className="text-md font-semibold text-indigo-600">Provincia: {province.name}</h4>
+                                    <button onClick={(e) => { e.stopPropagation(); onEditProvince(province);}} className="text-gray-400 hover:text-gray-800"><EditIcon className="w-3 h-3"/></button>
+                                </div>
+                            }
                             subHeader={`${province.voters.toLocaleString()} electores`}
                             actionButton={province.mayors.length === 0 ? <button onClick={() => onAddCandidate(null, party.id, 'Alcalde Provincial', province.id)} className="text-xs bg-indigo-500/80 text-white px-2 py-1 rounded-md hover:bg-indigo-500 transition-colors flex items-center gap-1"><AddIcon className="w-3 h-3"/> Añadir Alcalde</button> : null}
                          >

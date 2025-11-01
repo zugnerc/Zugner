@@ -43,9 +43,9 @@ const ActivityFeed: React.FC<ActivityFeedProps> = ({
                     {myActivities.map(activity => (
                         <div key={activity.id} className="bg-subtle p-3 rounded-lg relative group">
                             <p className="text-xs text-primary font-bold">{activity.date}</p>
-                            <div className="flex justify-between items-start">
-                                <p className="text-sm text-gray-800 pr-10">{activity.description}</p>
-                                <a href={activity.link} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-primary ml-2 flex-shrink-0">
+                            <p className="text-sm text-gray-800 pr-10">{activity.description}</p>
+                            <div className="flex justify-end mt-2">
+                                <a href={activity.link} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-primary">
                                     <LinkIcon className="w-4 h-4" />
                                 </a>
                             </div>
@@ -66,18 +66,18 @@ const ActivityFeed: React.FC<ActivityFeedProps> = ({
                         const party = getParty(activity.partyId);
                         return (
                             <div key={activity.id} className="bg-subtle p-3 rounded-lg relative group">
-                                <div className="flex justify-between items-start">
-                                    <p className="text-sm text-gray-800 pr-10">{activity.description}</p>
+                                <p className="text-sm text-gray-800 pr-10">{activity.description}</p>
+                                <div className="flex justify-between items-center mt-2">
+                                    {party ? (
+                                        <div className="flex items-center gap-2">
+                                            <img src={party.logoUrl} alt={`${party.name} logo`} className="w-5 h-5 rounded-full object-contain bg-white" />
+                                            <span className="text-xs text-gray-600">{party.name}</span>
+                                        </div>
+                                    ) : <div />}
                                     <a href={activity.link} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-primary ml-2 flex-shrink-0">
                                         <LinkIcon className="w-4 h-4" />
                                     </a>
                                 </div>
-                                {party && (
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <img src={party.logoUrl} alt={`${party.name} logo`} className="w-5 h-5 rounded-full object-contain bg-white" />
-                                        <span className="text-xs text-gray-600">{party.name}</span>
-                                    </div>
-                                )}
                                 <div className="absolute top-2 right-2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button onClick={() => onEditActivity(activity, 'competitor')} className="p-1 text-gray-500 hover:text-gray-900"><EditIcon className="w-4 h-4" /></button>
                                     <button onClick={() => onDeleteCompetitorActivity(activity.id)} className="p-1 text-gray-500 hover:text-red-500"><DeleteIcon className="w-4 h-4" /></button>

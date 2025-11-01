@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
-import type { Party, Candidate, MyActivity, CompetitorActivity, District, Province } from '../../types';
+import React, { useState, useMemo } from 'react';
+import type { Party, Candidate, MyActivity, CompetitorActivity, District, Province, Birthday } from '../../types';
 import PartyColumn from '../situational/PartyColumn';
 import ActivityFeed from '../situational/ActivityFeed';
 import Modal from '../common/Modal';
 import PartyForm from '../situational/PartyForm';
 import CandidateForm from '../situational/CandidateForm';
-import { AddIcon } from '../icons';
+import { AddIcon, CakeIcon } from '../icons';
 
 interface SituationalStatusTabProps {
     parties: Party[];
     myActivities: MyActivity[];
     competitorActivities: CompetitorActivity[];
+    birthdays: Birthday[];
     onSaveParty: (partyData: Party | (Omit<Party, 'id' | 'governor' | 'provinces'> & { type: 'newParty' })) => void;
     onDeleteParty: (partyId: string) => void;
     onSaveCandidate: (candidate: Candidate, isNew: boolean, locationId?: string) => void;
@@ -27,6 +28,7 @@ const SituationalStatusTab: React.FC<SituationalStatusTabProps> = ({
     parties,
     myActivities,
     competitorActivities,
+    birthdays,
     onSaveParty,
     onDeleteParty,
     onSaveCandidate,
@@ -54,6 +56,21 @@ const SituationalStatusTab: React.FC<SituationalStatusTabProps> = ({
     
     const [isProvinceModalOpen, setIsProvinceModalOpen] = useState(false);
     const [provinceModalInfo, setProvinceModalInfo] = useState<{ partyId: string; province?: Province } | null>(null);
+
+    const todaysBirthdays = useMemo(() => {
+        const today = new Date();
+        const todayMonth = today.getMonth() + 1; // getMonth() is 0-indexed, so add 1
+        const todayDate = today.getDate();
+        return birthdays.filter(b => {
+            // b.birthdate is in "YYYY-MM-DD" format.
+            // Parsing as a string avoids timezone issues with `new Date()`.
+            const parts = b.birthdate.split('-');
+            if (parts.length < 3) return false;
+            const birthMonth = parseInt(parts[1], 10);
+            const birthDay = parseInt(parts[2], 10);
+            return birthMonth === todayMonth && birthDay === todayDate;
+        });
+    }, [birthdays]);
 
     // Party Modal Handlers
     const openPartyModal = (party: Party | null = null) => {
@@ -140,20 +157,44 @@ const SituationalStatusTab: React.FC<SituationalStatusTabProps> = ({
                             onEditDistrict={(provId, dist) => openDistrictModal(party.id, provId, dist)}
                             onAddDistrict={(provId) => openDistrictModal(party.id, provId)}
                             onAddProvince={() => openProvinceModal(party.id)}
+                            onEditProvince={(prov) => openProvinceModal(party.id, prov)}
                         />
                     ))}
                 </div>
             </div>
 
-            <ActivityFeed 
-                myActivities={myActivities}
-                competitorActivities={competitorActivities}
-                parties={parties}
-                onAddActivity={openActivityModal}
-                onEditActivity={openActivityModal}
-                onDeleteMyActivity={onDeleteMyActivity}
-                onDeleteCompetitorActivity={onDeleteCompetitorActivity}
-            />
+             {/* Right Column */}
+            <div className="w-full xl:w-96 flex-shrink-0 space-y-6">
+                {/* Today's Birthdays */}
+                <div className="bg-gray-800 text-white rounded-xl p-4 shadow-md">
+                    <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-100">
+                        <CakeIcon className="w-6 h-6 text-secondary" />
+                        Cumpleaños de Hoy
+                    </h3>
+                    {todaysBirthdays.length > 0 ? (
+                        <div className="space-y-3">
+                            {todaysBirthdays.map(b => (
+                                <div key={b.id} className="bg-gray-700/50 p-3 rounded-lg">
+                                    <p className="font-bold text-white">{b.name}</p>
+                                    <p className="text-sm text-gray-300 italic">"{b.nickname}"</p>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-center text-gray-400 py-4">No hay cumpleaños hoy.</p>
+                    )}
+                </div>
+
+                <ActivityFeed 
+                    myActivities={myActivities}
+                    competitorActivities={competitorActivities}
+                    parties={parties}
+                    onAddActivity={openActivityModal}
+                    onEditActivity={openActivityModal}
+                    onDeleteMyActivity={onDeleteMyActivity}
+                    onDeleteCompetitorActivity={onDeleteCompetitorActivity}
+                />
+            </div>
 
             {isPartyModalOpen && (
                 <Modal isOpen={isPartyModalOpen} onClose={closePartyModal} title={editingParty ? 'Editar Partido' : 'Añadir Partido'}>
