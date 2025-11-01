@@ -1,4 +1,4 @@
-import type { Party, MyActivity, CompetitorActivity, PlannedEvent, Birthday, MediaPost, TrollTarget, RegionalOfficial, Councilor, ProvincialList, RegionalBody, PresidentialCandidate, CoordinatorProvince } from './types';
+import type { Party, MyActivity, CompetitorActivity, PlannedEvent, Birthday, MediaPost, TrollTarget, RegionalOfficial, Councilor, ProvincialList, RegionalBody, PresidentialCandidate, CoordinatorProvince, PropagandaProvince, Design } from './types';
 
 const PARTIDO_A_ID = 'party-a';
 const PARTIDO_B_ID = 'party-b';
@@ -245,5 +245,61 @@ export const initialPresidentialCandidates: PresidentialCandidate[] = [
         partySymbolUrl: 'https://picsum.photos/seed/fuerza/100/100',
         senator: null,
         deputies: []
+    }
+];
+
+export const initialPropagandaProvinces: PropagandaProvince[] = [
+    {
+        id: 'prop-prov-1',
+        name: 'Santa',
+        districts: [
+            {
+                id: 'prop-dist-1',
+                name: 'Chimbote',
+                items: [
+                    { id: 'prop-item-1', description: 'Campaña de afiches "Vota por el Futuro".', phone: '51987654321', externalLink: 'https://www.facebook.com/permalink/story' },
+                    { id: 'prop-item-2', description: 'Volanteo en mercado central.', phone: '51912345678', externalLink: 'https://www.tiktok.com/post' },
+                ]
+            },
+            {
+                id: 'prop-dist-2',
+                name: 'Nuevo Chimbote',
+                items: []
+            }
+        ]
+    },
+    {
+        id: 'prop-prov-2',
+        name: 'Huaraz',
+        districts: [
+            {
+                id: 'prop-dist-3',
+                name: 'Huaraz',
+                items: [
+                     { id: 'prop-item-3', description: 'Mural de apoyo en Av. Principal.', phone: '51955544433', externalLink: 'https://www.instagram.com/p/abc' },
+                ]
+            }
+        ]
+    }
+];
+
+export const initialDesigns: Design[] = [
+    {
+        id: 'design-1',
+        title: 'Banner Gobernador - Modelo 1',
+        previewImageUrl: 'https://picsum.photos/seed/designBanner/400/300',
+        dimensions: '3m x 5m',
+        type: 'Banner',
+        featuredPeople: 'Juan Pérez García',
+        downloadLink: 'https://picsum.photos/seed/designBanner/1200/800',
+    },
+    {
+        id: 'design-2',
+        title: 'Volante Provincial Santa',
+        previewImageUrl: 'https://picsum.photos/seed/designFlyer/400/300',
+        dimensions: '10cm x 15cm',
+        type: 'Volante (Flyer)',
+        featuredPeople: 'Maria Rodriguez',
+        downloadLink: 'https://picsum.photos/seed/designFlyer/800/1200',
     }
 ];

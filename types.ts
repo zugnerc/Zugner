@@ -204,3 +204,33 @@ export interface PresidentialCandidate {
     senator: CongressionalMember | null;
     deputies: CongressionalMember[];
 }
+
+// PropagandaTab types
+export interface PropagandaItem {
+    id: string;
+    description: string;
+    phone: string;
+    externalLink: string;
+}
+
+export interface PropagandaDistrict {
+    id: string;
+    name: string;
+    items: PropagandaItem[];
+}
+
+export interface PropagandaProvince {
+    id: string;
+    name: string;
+    districts: PropagandaDistrict[];
+}
+
+export interface Design {
+    id: string;
+    title: string;
+    previewImageUrl: string;
+    dimensions: string;
+    type: string;
+    featuredPeople: string;
+    downloadLink: string;
+}

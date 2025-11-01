@@ -7,12 +7,13 @@ import BirthdaysTab from './components/tabs/BirthdaysTab';
 import MediaTrackingTab from './components/tabs/MediaTrackingTab';
 import TrollsTab from './components/tabs/TrollsTab';
 import Generales2026Tab from './components/tabs/Generales2026Tab';
+import PropagandaTab from './components/tabs/PropagandaTab';
 // FIX: Import Mayor type
-import type { Party, Candidate, MyActivity, CompetitorActivity, Province, District, Birthday, MediaPost, TrollTarget, TrollAccount, RegionalBody, Mayor, PresidentialCandidate, CongressionalMember, CoordinatorProvince, CoordinatorDistrict, Coordinator } from './types';
-import { initialParties, initialMyActivities, initialCompetitorActivities, initialBirthdays, initialMediaPosts, initialTrollTargets, initialRegionalBody, initialPresidentialCandidates, initialCoordinatorProvinces } from './constants';
+import type { Party, Candidate, MyActivity, CompetitorActivity, Province, District, Birthday, MediaPost, TrollTarget, TrollAccount, RegionalBody, Mayor, PresidentialCandidate, CongressionalMember, CoordinatorProvince, CoordinatorDistrict, Coordinator, PropagandaProvince, PropagandaDistrict, PropagandaItem, Design } from './types';
+import { initialParties, initialMyActivities, initialCompetitorActivities, initialBirthdays, initialMediaPosts, initialTrollTargets, initialRegionalBody, initialPresidentialCandidates, initialCoordinatorProvinces, initialPropagandaProvinces, initialDesigns } from './constants';
 
 
-type Tab = 'situational' | 'regional' | 'planner' | 'coordinators' | 'birthdays' | 'media' | 'trolls' | 'generales';
+type Tab = 'situational' | 'regional' | 'planner' | 'coordinators' | 'propaganda' | 'birthdays' | 'media' | 'trolls' | 'generales';
 
 const App: React.FC = () => {
     const [activeTab, setActiveTab] = useState<Tab>('situational');
@@ -27,6 +28,8 @@ const App: React.FC = () => {
     const [regionalBody, setRegionalBody] = useState<RegionalBody>(initialRegionalBody);
     const [presidentialCandidates, setPresidentialCandidates] = useState<PresidentialCandidate[]>(initialPresidentialCandidates);
     const [coordinatorProvinces, setCoordinatorProvinces] = useState<CoordinatorProvince[]>(initialCoordinatorProvinces);
+    const [propagandaProvinces, setPropagandaProvinces] = useState<PropagandaProvince[]>(initialPropagandaProvinces);
+    const [designs, setDesigns] = useState<Design[]>(initialDesigns);
 
 
     // Party Handlers
@@ -367,6 +370,84 @@ const App: React.FC = () => {
         }
     };
 
+    // Propaganda Handlers
+    const handleSavePropagandaProvince = (province: PropagandaProvince) => {
+        setPropagandaProvinces(prev => {
+            const exists = prev.some(p => p.id === province.id);
+            if (exists) {
+                return prev.map(p => p.id === province.id ? province : p);
+            }
+            return [...prev, province];
+        });
+    };
+    const handleDeletePropagandaProvince = (provinceId: string) => {
+        if (window.confirm('¿Estás seguro de que quieres eliminar esta provincia y toda su propaganda asociada?')) {
+            setPropagandaProvinces(prev => prev.filter(p => p.id !== provinceId));
+        }
+    };
+    const handleSavePropagandaDistrict = (provinceId: string, district: PropagandaDistrict) => {
+         setPropagandaProvinces(prev => prev.map(prov => {
+            if (prov.id !== provinceId) return prov;
+            const exists = prov.districts.some(d => d.id === district.id);
+            const newDistricts = exists
+                ? prov.districts.map(d => d.id === district.id ? district : d)
+                : [...prov.districts, district];
+            return { ...prov, districts: newDistricts };
+        }));
+    };
+    const handleDeletePropagandaDistrict = (provinceId: string, districtId: string) => {
+        if (window.confirm('¿Estás seguro de que quieres eliminar este distrito y toda su propaganda asociada?')) {
+             setPropagandaProvinces(prev => prev.map(prov => {
+                if (prov.id !== provinceId) return prov;
+                const newDistricts = prov.districts.filter(d => d.id !== districtId);
+                return { ...prov, districts: newDistricts };
+            }));
+        }
+    };
+    const handleSavePropagandaItem = (provinceId: string, districtId: string, item: PropagandaItem) => {
+         setPropagandaProvinces(prev => prev.map(prov => {
+            if (prov.id !== provinceId) return prov;
+            const newDistricts = prov.districts.map(dist => {
+                if (dist.id !== districtId) return dist;
+                const exists = dist.items.some(i => i.id === item.id);
+                const newItems = exists
+                    ? dist.items.map(i => i.id === item.id ? item : i)
+                    : [...dist.items, item];
+                return { ...dist, items: newItems };
+            });
+            return { ...prov, districts: newDistricts };
+        }));
+    };
+    const handleDeletePropagandaItem = (provinceId: string, districtId: string, itemId: string) => {
+        if (window.confirm('¿Estás seguro de que quieres eliminar este registro de propaganda?')) {
+             setPropagandaProvinces(prev => prev.map(prov => {
+                if (prov.id !== provinceId) return prov;
+                const newDistricts = prov.districts.map(dist => {
+                    if (dist.id !== districtId) return dist;
+                    const newItems = dist.items.filter(i => i.id !== itemId);
+                    return { ...dist, items: newItems };
+                });
+                return { ...prov, districts: newDistricts };
+            }));
+        }
+    };
+
+    // Design Handlers
+    const handleSaveDesign = (design: Design) => {
+        setDesigns(prev => {
+            const exists = prev.some(d => d.id === design.id);
+            if (exists) {
+                return prev.map(d => d.id === design.id ? design : d);
+            }
+            return [...prev, design];
+        });
+    };
+    const handleDeleteDesign = (designId: string) => {
+        if (window.confirm('¿Estás seguro de que quieres eliminar este diseño?')) {
+            setDesigns(prev => prev.filter(d => d.id !== designId));
+        }
+    };
+
 
     const renderTabContent = () => {
         switch (activeTab) {
@@ -400,6 +481,19 @@ const App: React.FC = () => {
                             onDeleteDistrict={handleDeleteCoordinatorDistrict}
                             onSaveCoordinator={handleSaveCoordinator}
                             onDeleteCoordinator={handleDeleteCoordinator}
+                        />;
+            case 'propaganda':
+                return <PropagandaTab 
+                            provinces={propagandaProvinces}
+                            designs={designs}
+                            onSaveProvince={handleSavePropagandaProvince}
+                            onDeleteProvince={handleDeletePropagandaProvince}
+                            onSaveDistrict={handleSavePropagandaDistrict}
+                            onDeleteDistrict={handleDeletePropagandaDistrict}
+                            onSaveItem={handleSavePropagandaItem}
+                            onDeleteItem={handleDeletePropagandaItem}
+                            onSaveDesign={handleSaveDesign}
+                            onDeleteDesign={handleDeleteDesign}
                         />;
             case 'birthdays':
                 return <BirthdaysTab 
@@ -437,7 +531,7 @@ const App: React.FC = () => {
     const TabButton: React.FC<{ tab: Tab; label: string }> = ({ tab, label }) => (
         <button
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors focus:outline-none ${
+            className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors focus:outline-none whitespace-nowrap ${
                 activeTab === tab 
                 ? 'bg-surface text-primary border-b-2 border-primary' 
                 : 'text-gray-600 hover:text-gray-900 border-b-2 border-transparent'
@@ -454,11 +548,12 @@ const App: React.FC = () => {
                     <div className="flex items-center justify-between py-4">
                         <h1 className="text-2xl font-bold text-primary">BRAVO22</h1>
                     </div>
-                    <nav className="flex -mb-px">
+                    <nav className="flex -mb-px overflow-x-auto">
                         <TabButton tab="situational" label="Estado Situacional" />
                         <TabButton tab="regional" label="Órgano Regional" />
                         <TabButton tab="planner" label="Planificador" />
                         <TabButton tab="coordinators" label="Coordinadores" />
+                        <TabButton tab="propaganda" label="Propaganda" />
                         <TabButton tab="birthdays" label="Cumpleaños" />
                         <TabButton tab="media" label="Media Seguimiento" />
                         <TabButton tab="trolls" label="Cuentas Troll" />
